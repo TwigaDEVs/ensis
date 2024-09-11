@@ -149,6 +149,15 @@ contract Ensis is ERC721, Ownable {
         functionPrice = newPrice;
     }
 
+
+    function callContractFunction(address contractAddress, string memory functionName, bytes memory params) public view returns (bool success, bytes memory result) {
+        require(_registeredContracts[contractAddress].contractId != 0, "Contract not registered");
+        FunctionData memory funcData = _registeredContracts[contractAddress].functions[functionName];
+        require(funcData.selector != bytes4(0), "Function not registered");
+        
+        (success, result) = contractAddress.staticcall(abi.encodePacked(funcData.selector, params));
+    }
+
     function _isAuthorized(address operator, uint256 contractId) internal view returns (bool) {
         address owner = ownerOf(contractId);
         return operator == owner || getApproved(contractId) == operator || isApprovedForAll(owner, operator);
